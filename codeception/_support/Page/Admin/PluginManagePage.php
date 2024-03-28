@@ -29,6 +29,11 @@ class PluginManagePage extends AbstractAdminPageStyleGuide
         return $page->atPage('インストールプラグイン一覧オーナーズストア');
     }
 
+    public static function go($I)
+    {
+        $page = new self($I);
+        return $page->goPage('/store/plugin', 'インストールプラグイン一覧');
+    }
     /**
      * @param $pluginCode
      * @param string $message
