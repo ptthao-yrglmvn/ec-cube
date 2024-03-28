@@ -68,19 +68,7 @@ class PluginAutomationCest
 
     public function test_authenKey(AcceptanceTester $I)
     {
-        $I->wantTo('Authentication key setting');
-
-        $I->amOnPage('/'.$this->config['eccube_admin_route'].'/store/plugin/authentication_setting');
-        $I->expect('認証キーの入力を行います。');
-        $I->fillField(['id' => 'admin_authentication_authentication_key'], $this->authenticationKey);
-
-        $I->expect('認証キーの登録ボタンをクリックします。');
-        $I->click(['css' => '.btn-ec-conversion']);
-        $I->waitForText('保存しました');
-        $I->wantTo('Test authentication key is valid:');
-        PluginManagePage::go($I);
-        $I->waitForText('オーナーズストアのプラグイン');
-        $I->see($this->name, 'table');
+        Store_Plugin::start($I, $this->code)->inputAuthenKey($this->authenticationKey, $this->name);
     }
 
 
@@ -116,6 +104,12 @@ class PluginAutomationCest
     {
         $I->wantTo('Test uninstall plugin:'.$this->name);
         Store_Plugin::start($I, $this->code)->uninstall();
+    }
+
+    public function test_directoryIsRemoved(AcceptanceTester $I)
+    {
+        $I->wantTo('Test check plugin directory is removed after uninstall:'.$this->code);
+        Store_Plugin::start($I, $this->code)->checkDirectoryIsRemoved();
     }
 }
 
@@ -161,6 +155,24 @@ class Store_Plugin
         $result = new self($I, $code);
 
         return $result;
+    }
+
+    public function inputAuthenKey($authenticationKey, $pluginName)
+    {
+        $this->I->wantTo('Authentication key setting');
+
+        $this->I->amOnPage('/'.$this->config['eccube_admin_route'].'/store/plugin/authentication_setting');
+        $this->I->expect('認証キーの入力を行います。');
+        $this->I->fillField(['id' => 'admin_authentication_authentication_key'], $authenticationKey);
+
+        $this->I->expect('認証キーの登録ボタンをクリックします。');
+        $this->I->click(['css' => '.btn-ec-conversion']);
+        $this->I->waitForText('保存しました');
+        $this->I->wantTo('Test authentication key is valid:');
+        PluginManagePage::go($this->I);
+        $this->I->waitForText('オーナーズストアのプラグイン');
+        $this->I->see($pluginName, 'table');
+
     }
 
     public function install()
@@ -217,6 +229,13 @@ class Store_Plugin
         $this->Plugin = $this->pluginRepository->findByCode($this->code);
         $this->I->assertNull($this->Plugin, '削除されている');
 
+        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->code);
+
+        return $this;
+    }
+
+    public function checkDirectoryIsRemoved()
+    {
         $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->code);
 
         return $this;
