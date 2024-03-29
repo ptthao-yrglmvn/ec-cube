@@ -18,6 +18,7 @@ use Eccube\Repository\PluginRepository;
 use Page\Admin\PluginManagePage;
 use Page\Admin\PluginSearchPage;
 use Eccube\Common\Constant;
+use PHPUnit\Framework\Assert;
 
 class PluginAutomationCest
 {  
@@ -235,8 +236,8 @@ class Store_Plugin
 
     public function checkDirectoryIsRemoved()
     {
-        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->code);
-
+        $this->I->amOnPage('/'.$this->config['eccube_admin_route']);
+        Assert::assertDirectoryNotExists($this->config['plugin_realdir'].'/'.$this->code,"Directory does not exist");
         return $this;
     }
 }
