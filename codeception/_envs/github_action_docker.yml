@@ -2,7 +2,7 @@ modules:
     config:
         WebDriver:
             host: 'localhost'
-            port: 4445
+            port: 9515
             url: 'http://localhost:8080'
             capabilities:
                 goog:chromeOptions:
