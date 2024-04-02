@@ -76,6 +76,9 @@ class PluginAutomationCest
     {
         $I->wantTo('Test search plugin by name');
         PluginSearchPage::go($I);
+        $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
+        $I->dontSee('オーナーズストアの認証に失敗しました。認証キーの設定を確認してください。', '.alert-danger');
+        $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
         $I->fillField(['id' => 'search_plugin_keyword'], $this->name);
         $I->click('検索');
         $I->see($this->name, '#plugin-list');
