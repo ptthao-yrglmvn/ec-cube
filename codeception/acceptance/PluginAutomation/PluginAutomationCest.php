@@ -17,111 +17,77 @@ use Eccube\Entity\Plugin;
 use Eccube\Repository\PluginRepository;
 use Page\Admin\PluginManagePage;
 use Page\Admin\PluginSearchPage;
+use Page\Admin\PluginStoreInstallPage;
 use Eccube\Common\Constant;
 
 class PluginAutomationCest
-{  
-    /** @var string */
-    private $code;
-
-    private $name;
-
-    private $config;
-
-    private $authenticationKey;
+{
+    private $store;
 
     public function _before(AcceptanceTester $I)
     {
         $I->loginAsAdmin();
-        $this->config = Fixtures::get('config');
-        $url = $this->config->get('eccube_package_api_url').'/plugins/purchased';
-        $this->authenticationKey = getenv('AUTHENTICATION_KEY');
-        $pluginId = getenv('PLUGIN_ID');
-
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET',
-                'header' => array(
-                    'X-ECCUBE-KEY: '.$this->authenticationKey,
-                    'X-ECCUBE-VERSION: '.Constant::VERSION,
-                ),
-            )
-        ));
-            
-        $result = json_decode(file_get_contents($url, false, $context), true);
-        $targetPlugin = array_reduce($result, function ($carry, $item) use ($pluginId) {
-            if ($item['id'] == $pluginId) {
-                $carry = $item;
-            }
-            return $carry;
-        }, []);
-        if(count($targetPlugin) > 0) {
-            $this->code = $targetPlugin['code'];
-            $this->name = $targetPlugin['name'];
-        }
-        
+        $this->store = Store_Plugin::start($I);
     }
 
     public function _after(AcceptanceTester $I)
     {
+        # Disable maintenance
+        $config = Fixtures::get('config');
+        $maintenance_file_path= $config->get('eccube_content_maintenance_file_path');
+        if (file_exists($maintenance_file_path)) {
+            unlink($maintenance_file_path);
+        }
     }
 
-    public function test_authenKey(AcceptanceTester $I)
+    public function test_setting_authenKey(AcceptanceTester $I)
     {
-        Store_Plugin::start($I, $this->code)->inputAuthenKey($this->authenticationKey, $this->name);
+        $this->store->setting_key();
     }
 
-
-    public function test_searchByName(AcceptanceTester $I)
+    public function test_link_authenKey(AcceptanceTester $I)
     {
-        $I->wantTo('Test search plugin by name');
         PluginSearchPage::go($I);
+        $I->waitForText('プラグインを探すオーナーズストア');
         $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
         $I->dontSee('オーナーズストアの認証に失敗しました。認証キーの設定を確認してください。', '.alert-danger');
         $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
-        $I->fillField(['id' => 'search_plugin_keyword'], $this->name);
-        $I->click('検索');
-        $I->see($this->name, '#plugin-list');
+    }
+
+    public function test_search_by_name(AcceptanceTester $I)
+    {
+        $this->store->search_by_name();
     }
 
     public function test_install(AcceptanceTester $I)
     {
-        $I->wantTo('Test install plugin:'.$this->name);
-        Store_Plugin::start($I, $this->code)->install();
+        $this->store->install();
     }
 
-    
     public function test_enable(AcceptanceTester $I)
     {
-        $I->wantTo('Test enable plugin:'.$this->name);
-        Store_Plugin::start($I, $this->code)->enable();
+        $this->store->enable();
     }
 
     public function test_disable(AcceptanceTester $I)
     {
-        $I->wantTo('Test disable plugin:'.$this->name);
-        Store_Plugin::start($I, $this->code)->disable();
+        $this->store->disable();
     }
 
     public function test_remove(AcceptanceTester $I)
     {
-        $I->wantTo('Test uninstall plugin:'.$this->name);
-        Store_Plugin::start($I, $this->code)->uninstall();
+        $this->store->uninstall();
     }
 
     public function test_directoryIsRemoved(AcceptanceTester $I)
     {
-        $I->wantTo('Test check plugin directory is removed after uninstall:'.$this->code);
-        Store_Plugin::start($I, $this->code)->checkDirectoryIsRemoved();
+        $this->store->checkDirectoryIsRemoved();
     }
 }
 
 
 class Store_Plugin
 {
-    /** @var string */
-    protected $code;
-
     /** @var AcceptanceTester */
     protected $I;
 
@@ -143,103 +109,134 @@ class Store_Plugin
     /** @var PluginRepository */
     protected $pluginRepository;
 
-    public function __construct(AcceptanceTester $I, $code)
+    /** @var string */
+    protected $authenticationKey;
+
+    /** @var object */
+    protected $plugin;
+
+    public function __construct(AcceptanceTester $I, $authenticationKey, $plugin)
     {
         $this->I = $I;
-        $this->code = $code;
+        $this->plugin = $plugin;
+        $this->authenticationKey = $authenticationKey;
         $this->em = Fixtures::get('entityManager');
         $this->config = Fixtures::get('config');
         $this->conn = $this->em->getConnection();
         $this->pluginRepository = $this->em->getRepository(Plugin::class);
     }
 
-    public static function start(AcceptanceTester $I, $code)
+    public static function start(AcceptanceTester $I)
     {
-        $result = new self($I, $code);
+        $config = Fixtures::get('config');
+        $url = $config->get('eccube_package_api_url').'/plugins/purchased';
+        $authenticationKey = getenv('AUTHENTICATION_KEY');
+        $pluginId = getenv('PLUGIN_ID');
+
+        $context = stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => array(
+                    'X-ECCUBE-KEY: '.$authenticationKey,
+                    'X-ECCUBE-VERSION: '.Constant::VERSION,
+                ),
+            )
+        ));
+            
+        $result = json_decode(file_get_contents($url, false, $context), true);
+        $plugin = array_reduce($result, function ($carry, $item) use ($pluginId) {
+            if ($item['id'] == $pluginId) {
+                $carry = $item;
+            }
+            return $carry;
+        }, []);
+
+        $result = new self($I, $authenticationKey, $plugin);
 
         return $result;
     }
 
-    public function inputAuthenKey($authenticationKey, $pluginName)
+    public function setting_key()
     {
         $this->I->wantTo('Authentication key setting');
 
         $this->I->amOnPage('/'.$this->config['eccube_admin_route'].'/store/plugin/authentication_setting');
+
         $this->I->expect('認証キーの入力を行います。');
-        $this->I->fillField(['id' => 'admin_authentication_authentication_key'], $authenticationKey);
+        $this->I->fillField(['id' => 'admin_authentication_authentication_key'], $this->authenticationKey);
 
         $this->I->expect('認証キーの登録ボタンをクリックします。');
         $this->I->click(['css' => '.btn-ec-conversion']);
         $this->I->waitForText('保存しました');
-        $this->I->wantTo('Test authentication key is valid:');
-        PluginManagePage::go($this->I);
-        $this->I->waitForText('オーナーズストアのプラグイン');
-        $this->I->see($pluginName, 'table');
 
+        return $this;
+    }
+
+    public function search_by_name()
+    {
+        PluginSearchPage::go($this->I);
+        $this->I->fillField(['id' => 'search_plugin_keyword'], $this->plugin['name']);
+        $this->I->click('検索');
+        $this->I->see($this->plugin['name'], '#plugin-list');
+
+        return $this;
     }
 
     public function install()
     {
         PluginManagePage::go($this->I);
-        $this->I->click(['xpath' => '//p[contains(text(),"'.$this->code.'")]/ancestor::tr/td/a[contains(text(),"インストール")]']);
-        $this->I->click('インストール');
-        $this->I->waitForElement('#installModal');
-        $this->I->seeElement('#installModal');
-        $this->I->waitForText('をインストールしますか？', 20, '#installModal .modal-body');
-        $this->I->click('インストール', '#installModal');
-        $this->I->waitForText('インストールが完了しました。', 60, '#installModal .modal-body');
-        $this->I->click('完了','#installModal .modal-footer');
+        $this->I->click(['xpath' => '//p[contains(text(),"'.$this->plugin['code'].'")]/ancestor::tr/td/a[contains(text(),"インストール")]']);
+        
+        PluginStoreInstallPage::at($this->I)->インストール();
 
-        $this->Plugin = $this->pluginRepository->findByCode($this->code);
-        $this->I->assertFalse($this->Plugin->isInitialized(), '初期化されていない');
-        $this->I->assertFalse($this->Plugin->isEnabled(), '有効化されていない');
-        $this->I->assertDirectoryExists($this->config['plugin_realdir'].'/'.$this->code);
+        $plugin = $this->pluginRepository->findByCode($this->plugin['code']);
+        $this->I->assertFalse($plugin->isInitialized(), '初期化されていない');
+        $this->I->assertFalse($plugin->isEnabled(), '有効化されていない');
+        $this->I->assertDirectoryExists($this->config['plugin_realdir'].'/'.$this->plugin['code']);
 
         return $this;
     }
 
     public function enable()
     {
-        $this->Plugin = $this->pluginRepository->findByCode($this->code);
+        $plugin = $this->pluginRepository->findByCode($this->plugin['code']);
 
-        $this->ManagePage = PluginManagePage::go($this->I)->ストアプラグイン_有効化($this->code);
+        PluginManagePage::go($this->I)->ストアプラグイン_有効化($this->plugin['code']);
 
-        $this->em->refresh($this->Plugin);
-        $this->I->assertTrue($this->Plugin->isInitialized(), '初期化されている');
-        $this->I->assertTrue($this->Plugin->isEnabled(), '有効化されている');
+        $this->em->refresh($plugin);
+        $this->I->assertTrue($plugin->isInitialized(), '初期化されている');
+        $this->I->assertTrue($plugin->isEnabled(), '有効化されている');
 
         return $this;
     }
 
     public function disable()
     {
-        $this->Plugin = $this->pluginRepository->findByCode($this->code);
-        $this->ManagePage = PluginManagePage::go($this->I)->ストアプラグイン_無効化($this->code);
+        $plugin = $this->pluginRepository->findByCode($this->plugin['code']);
+        PluginManagePage::go($this->I)->ストアプラグイン_無効化($this->plugin['code']);
 
-        $this->em->refresh($this->Plugin);
-        $this->I->assertTrue($this->Plugin->isInitialized(), '初期化されている');
-        $this->I->assertFalse($this->Plugin->isEnabled(), '無効化されている');
+        $this->em->refresh($plugin);
+        $this->I->assertTrue($plugin->isInitialized(), '初期化されている');
+        $this->I->assertFalse($plugin->isEnabled(), '無効化されている');
 
         return $this;
     }
 
     public function uninstall()
     {
-        $this->Plugin = $this->pluginRepository->findByCode($this->code);
-        $this->ManagePage = PluginManagePage::go($this->I)->ストアプラグイン_削除($this->code);
+        $plugin = $this->pluginRepository->findByCode($this->plugin['code']);
+        PluginManagePage::go($this->I)->ストアプラグイン_削除($this->plugin['code']);
 
-        $this->em->refresh($this->Plugin);
-        $this->Plugin = $this->pluginRepository->findByCode($this->code);
-        $this->I->assertNull($this->Plugin, '削除されている');
-
-        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->code);
+        $this->em->refresh($plugin);
+        $plugin = $this->pluginRepository->findByCode($this->plugin['code']);
+        $this->I->assertNull($plugin, '削除されている');
 
         return $this;
     }
 
     public function checkDirectoryIsRemoved()
     {
-        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->code);
+        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->plugin['code']);
 
         return $this;
     }
