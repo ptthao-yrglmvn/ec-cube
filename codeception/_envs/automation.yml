@@ -6,7 +6,7 @@ modules:
             url: 'http://127.0.0.1'
             browser: chrome
             capabilities:
-                goog:chromeOptions:
+                chromeOptions:
                     args: ["--headless", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", "--disable-setuid-sandbox"]
                     prefs:
                         download.default_directory: '%PWD%/codeception/_support/_downloads'
