@@ -32,6 +32,12 @@ class PluginAutomationCest
 
     public function _after(AcceptanceTester $I)
     {
+        # Disable maintenance
+        $config = Fixtures::get('config');
+        $maintenance_file_path= $config->get('eccube_content_maintenance_file_path');
+        if (file_exists($maintenance_file_path)) {
+            unlink($maintenance_file_path);
+        }
     }
 
     public function test_setting_authenKey(AcceptanceTester $I)
