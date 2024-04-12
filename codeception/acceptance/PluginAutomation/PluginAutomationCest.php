@@ -167,6 +167,7 @@ class Store_Plugin
 
         $this->I->expect('認証キーの登録ボタンをクリックします。');
         $this->I->click(['css' => '.btn-ec-conversion']);
+        $this->I->wait(5);
         $this->I->waitForText('保存しました');
 
         return $this;
