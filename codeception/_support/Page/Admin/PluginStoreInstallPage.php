@@ -37,7 +37,7 @@ class PluginStoreInstallPage extends AbstractAdminPageStyleGuide
         $this->tester->click(['css' => '#plugin-list > div.card-body > div:nth-child(2) > div > button.btn.btn-primary']);
         $this->tester->waitForElementVisible(['id' => 'installBtn'], 60);
         $this->tester->click(['id' => 'installBtn']);
-        $this->tester->waitForElementVisible(['css' => '#installModal > div > div > div.modal-footer > a'], 60);
+        $this->tester->waitForElementVisible(['css' => '#installModal > div > div > div.modal-footer > a'], 120);
         $this->tester->see($message, ['css' => '#installModal > div > div > div.modal-body > p']);
         $this->tester->click(['css' => '#installModal > div > div > div.modal-footer > a']);
 
