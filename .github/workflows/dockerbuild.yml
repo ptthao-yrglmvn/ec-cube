@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/composer
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -76,7 +76,7 @@ jobs:
             type=ref,event=pr,prefix=${{ matrix.php }}-apache-pr-
 
       - name: Build and export to Docker
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           load: true
@@ -124,7 +124,7 @@ jobs:
       ## see https://docs.github.com/ja/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#publishing-a-package-using-an-action
 
       - name: Push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         if: success()
         with:
           context: .
@@ -136,13 +136,13 @@ jobs:
 
       - name: Upload evidence
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: codeception-${{ matrix.group }}-evidence
           path: codeception/_output/
       - name: Upload logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: codeception-${{ matrix.group }}-logs
           path: var/log/

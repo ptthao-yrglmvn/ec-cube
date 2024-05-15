@@ -49,15 +49,15 @@ jobs:
           DATABASE_URL: postgres://postgres:password@127.0.0.1:5432/eccube_db
           DATABASE_SERVER_VERSION: 14
         run: |
-          # bin/console eccube:composer:require "ec-cube/recommend42"
-          # bin/console eccube:composer:require "ec-cube/coupon42"
-          # bin/console eccube:composer:require "ec-cube/mailmagazine42"
-          # bin/console eccube:composer:require "ec-cube/salesreport42"
-          # bin/console eccube:composer:require "ec-cube/relatedproduct42"
-          # bin/console eccube:composer:require "ec-cube/securitychecker42"
-          # bin/console eccube:composer:require "ec-cube/productreview42"
-          # bin/console eccube:composer:require "ec-cube/api42"
-          # bin/console eccube:composer:require "ec-cube/sitekit42"
+           bin/console eccube:composer:require "ec-cube/recommend42"
+           bin/console eccube:composer:require "ec-cube/coupon42"
+           bin/console eccube:composer:require "ec-cube/mailmagazine42"
+           bin/console eccube:composer:require "ec-cube/salesreport42"
+           bin/console eccube:composer:require "ec-cube/relatedproduct42"
+           bin/console eccube:composer:require "ec-cube/securitychecker42"
+           bin/console eccube:composer:require "ec-cube/productreview42"
+           bin/console eccube:composer:require "ec-cube/api42"
+           bin/console eccube:composer:require "ec-cube/sitekit42"
 
       - name: revert to config platform.php
         run: composer config platform.php 8.1.0
@@ -74,7 +74,7 @@ jobs:
         run: ${{ github.event.repository.name }}/package.sh
 
       - name: Upload binaries to release of TGZ
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.tar.gz
@@ -82,7 +82,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of ZIP
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.zip
@@ -90,7 +90,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of TGZ md5 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.tar.gz.checksum.md5
@@ -98,7 +98,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of TGZ sha1 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.tar.gz.checksum.sha1
@@ -106,7 +106,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of TGZ sha256 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.tar.gz.checksum.sha256
@@ -114,7 +114,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of ZIP md5 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.zip.checksum.md5
@@ -122,7 +122,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of ZIP sha1 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.zip.checksum.sha1
@@ -130,7 +130,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload binaries to release of ZIP sha256 checksum
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ runner.workspace }}/eccube-${{ github.event.release.tag_name }}.zip.checksum.sha256

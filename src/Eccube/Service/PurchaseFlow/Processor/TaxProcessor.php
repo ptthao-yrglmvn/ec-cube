@@ -20,10 +20,10 @@ use Eccube\Entity\Master\TaxDisplayType;
 use Eccube\Entity\Master\TaxType;
 use Eccube\Entity\Order;
 use Eccube\Repository\TaxRuleRepository;
+use Eccube\Service\OrderHelper;
 use Eccube\Service\PurchaseFlow\ItemHolderPreprocessor;
 use Eccube\Service\PurchaseFlow\PurchaseContext;
 use Eccube\Service\TaxRuleService;
-use Eccube\Service\OrderHelper;
 
 class TaxProcessor implements ItemHolderPreprocessor
 {
@@ -50,8 +50,10 @@ class TaxProcessor implements ItemHolderPreprocessor
     /**
      * TaxProcessor constructor.
      *
+     * @param EntityManagerInterface $entityManager
      * @param TaxRuleRepository $taxRuleRepository
      * @param TaxRuleService $taxRuleService
+     * @param OrderHelper $orderHelper
      */
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -160,6 +162,7 @@ class TaxProcessor implements ItemHolderPreprocessor
      * - ポイント値引き: 税込
      *
      * @param $OrderItemType
+     *
      * @deprecated OrderHelper::getTaxDisplayTypeを使用してください
      *
      * @return TaxDisplayType

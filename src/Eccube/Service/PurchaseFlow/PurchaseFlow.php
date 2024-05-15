@@ -225,14 +225,14 @@ class PurchaseFlow
         }
     }
 
-    public function addPurchaseProcessor(PurchaseProcessor $processor)
+    public function addPurchaseProcessor(PurchaseProcessor $purchaseProcessor)
     {
-        $this->purchaseProcessors[] = $processor;
+        $this->purchaseProcessors[] = $purchaseProcessor;
     }
 
-    public function addItemHolderPreprocessor(ItemHolderPreprocessor $holderPreprocessor)
+    public function addItemHolderPreprocessor(ItemHolderPreprocessor $itemHolderPreprocessor)
     {
-        $this->itemHolderPreprocessors[] = $holderPreprocessor;
+        $this->itemHolderPreprocessors[] = $itemHolderPreprocessor;
     }
 
     public function addItemPreprocessor(ItemPreprocessor $itemPreprocessor)
@@ -250,9 +250,9 @@ class PurchaseFlow
         $this->itemHolderValidators[] = $itemHolderValidator;
     }
 
-    public function addItemHolderPostValidator(ItemHolderPostValidator $itemHolderValidator)
+    public function addItemHolderPostValidator(ItemHolderPostValidator $itemHolderPostValidator)
     {
-        $this->itemHolderPostValidators[] = $itemHolderValidator;
+        $this->itemHolderPostValidators[] = $itemHolderPostValidator;
     }
 
     public function addDiscountProcessor(DiscountProcessor $discountProcessor)
@@ -384,7 +384,7 @@ class PurchaseFlow
             return get_class($processor);
         };
         $flows = [
-            0 => $this->flowType.' flow',
+            0 => $this->flowType . ' flow',
             'ItemValidator' => $this->itemValidators->map($callback)->toArray(),
             'ItemHolderValidator' => $this->itemHolderValidators->map($callback)->toArray(),
             'ItemPreprocessor' => $this->itemPreprocessors->map($callback)->toArray(),
@@ -401,9 +401,9 @@ class PurchaseFlow
         $out = '';
         foreach ($tree as $key => $value) {
             if (is_numeric($key)) {
-                $out .= $value.PHP_EOL;
+                $out .= $value . PHP_EOL;
             } else {
-                $out .= $key.PHP_EOL;
+                $out .= $key . PHP_EOL;
             }
         }
 

@@ -79,6 +79,13 @@ class ClassNameManagePage extends AbstractAdminPageStyleGuide
         return $this;
     }
 
+    public function 一覧_分類登録2()
+    {
+        $this->tester->click("ul.list-group > li:last-child > div > div.col.d-flex.align-items-center > a");
+
+        return $this;
+    }
+
     public function 一覧_編集($rowNum)
     {
         $this->tester->click("ul.list-group > li:nth-child(${rowNum}) > div > div.col-auto.text-end > a.action-edit");
@@ -103,6 +110,18 @@ class ClassNameManagePage extends AbstractAdminPageStyleGuide
         return $this;
     }
 
+    public function CSVダウンロード実行()
+    {
+        $this->tester->click('div > div.c-contentsArea > div.c-outsideBlock > div > div > div > div > a:nth-child(1)');
+
+        return $this;
+    }
+
+    public function CSV出力項目設定()
+    {
+        $this->tester->click('body > div > div.c-contentsArea > div.c-outsideBlock > div > div > div.col-6.text-end > div > a:nth-child(2)');
+    }
+
     public function 一覧_上に($rowNum)
     {
         $this->tester->dragAndDropBy("ul.list-group > li:nth-child(${rowNum})", 0, -60);
@@ -115,5 +134,10 @@ class ClassNameManagePage extends AbstractAdminPageStyleGuide
         $this->tester->dragAndDropBy("ul.list-group > li:nth-child(${rowNum})", 0, 60);
 
         return $this;
+    }
+
+    public static function XPathでタグを取得する($textEl)
+    {
+        return '//*[@id="page_admin_product_class_name"]/div[1]/div[3]/div[3]/div[1]/div/div/div/div/ul/li/div/div[3]/a[contains(text(), "'.$textEl.'")]';
     }
 }

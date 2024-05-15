@@ -90,6 +90,15 @@ if (!class_exists('\Eccube\Entity\MailTemplate')) {
         private $Creator;
 
         /**
+         * テンプレートの削除可否。
+         *
+         * @var bool
+         *
+         * @ORM\Column(name="deletable", type="boolean", options={"default":false}))
+         */
+        private bool $deletable = false;
+
+        /**
          * Get id.
          *
          * @return int
@@ -241,6 +250,26 @@ if (!class_exists('\Eccube\Entity\MailTemplate')) {
         public function getCreator()
         {
             return $this->Creator;
+        }
+
+
+        /**
+         * @return bool
+         */
+        public function isDeletable(): bool
+        {
+            return $this->deletable;
+        }
+
+        /**
+         * @param bool $deletable
+         * @return $this
+         */
+        public function setDeletable(bool $deletable): self
+        {
+            $this->deletable = $deletable;
+
+            return $this;
         }
     }
 }

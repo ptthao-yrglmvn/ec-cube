@@ -1,6 +1,6 @@
 {
   "name": "eccube",
-  "version": "4.3.0-alpha",
+  "version": "4.3.0-beta",
   "description": "EC-CUBE EC open platform.",
   "main": "index.js",
   "directories": {
@@ -54,7 +54,7 @@
     "url-loader": "^4.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.2",
+    "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.18.2",
     "autoprefixer": "^9.6.4",
     "babel-loader": "^8.2.5",

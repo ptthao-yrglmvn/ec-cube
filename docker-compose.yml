@@ -48,6 +48,7 @@ services:
       # ECCUBE_USER_DATA_ROUTE: "user_data"
       # ECCUBE_ADMIN_ALLOW_HOSTS: []
       # ECCUBE_FORCE_SSL: false
+      # ECCUBE_PHPINFO_ENABLED=false
       # ECCUBE_TEMPLATE_CODE: "default"
       # ECCUBE_COOKIE_NAME: "eccube"
       # ECCUBE_COOKIE_PATH: "/"

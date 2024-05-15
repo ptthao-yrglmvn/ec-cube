@@ -123,4 +123,47 @@ class MailControllerTest extends AbstractAdminWebTestCase
         $this->actual = $Message->getSubject();
         $this->verify();
     }
+
+    /**
+     * メールテンプレートを選択する
+     *
+     * @return void
+     */
+    public function testSelectMailTemplate()
+    {
+        $form = $this->createFormData();
+        // 注文完了メール
+        $form['template'] = 1;
+        $crawler = $this->client->request(
+            'POST',
+            $this->generateUrl('admin_order_mail', ['id' => $this->Order->getId()]),
+            [
+                'admin_order_mail' => $form,
+                'mode' => 'change',
+            ]
+        );
+
+        $this->assertTrue($this->client->getResponse()->isOk());
+
+        $this->actual = $crawler->filter('input[name="admin_order_mail[mail_subject]"]')->attr('value');
+        $this->expected = 'ご注文ありがとうございます';
+        $this->verify();
+
+        // 会員仮登録完了メール
+        $form['template'] = 2;
+        $crawler = $this->client->request(
+            'POST',
+            $this->generateUrl('admin_order_mail', ['id' => $this->Order->getId()]),
+            [
+                'admin_order_mail' => $form,
+                'mode' => 'change',
+            ]
+        );
+
+        $this->assertTrue($this->client->getResponse()->isOk());
+
+        $this->actual = $crawler->filter('input[name="admin_order_mail[mail_subject]"]')->attr('value');
+        $this->expected = '会員登録のご確認';
+        $this->verify();
+    }
 }

@@ -486,11 +486,19 @@ class ConfigRepository extends AbstractRepository
     /**
      * @param int \$id
      *
-     * @return null|Config
+     * @return Config
+     *
+     * @throws \Exception
      */
     public function get(\$id = 1)
     {
-        return \$this->find(\$id);
+        \$Config = \$this->find(\$id);
+
+        if (null === \$Config) {
+            throw new \Exception('Config not found. id = '.\$id);
+        }
+
+        return \$Config;
     }
 }
 
