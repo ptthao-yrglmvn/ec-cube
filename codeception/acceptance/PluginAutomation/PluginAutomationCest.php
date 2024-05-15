@@ -258,7 +258,8 @@ class Store_Plugin
 
     public function checkDirectoryIsRemoved()
     {
-        $this->I->assertDirectoryDoesNotExist($this->config['plugin_realdir'].'/'.$this->plugin['code']);
+        $folderPath = $this->config['plugin_realdir'].'/'.$this->plugin['code'];
+        $this->I->assertTrue(!file_exists($folderPath), "Failed asserting that directory {$folderPath} does not exists.");
 
         return $this;
     }
