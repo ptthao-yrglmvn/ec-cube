@@ -13,11 +13,16 @@
 
 namespace Helper;
 
+use Codeception\Util\Fixtures;
+use Eccube\Common\Constant;
+
 // here you can define custom actions
 // all public methods declared in helper class will be available in $I
 
 class Acceptance extends \Codeception\Module
 {
+    private $plugin = null;
+
     public function _initialize()
     {
         $this->clearDownloadDir();
@@ -48,5 +53,35 @@ class Acceptance extends \Codeception\Module
     public function sendKeys($keys)
     {
         return $this->getModule('WebDriver')->webDriver->getKeyboard()->sendKeys($keys);
+    }
+
+    public function getPluginByApi($authenticationKey, $pluginId)
+    {
+        if ($this->plugin !== null) {
+            return $this->plugin;
+        }
+
+        $config = Fixtures::get('config');
+        $url = $config->get('eccube_package_api_url').'/plugins/purchased';
+
+        $context = stream_context_create(array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => array(
+                    'X-ECCUBE-KEY: '.$authenticationKey,
+                    'X-ECCUBE-VERSION: '.Constant::VERSION,
+                ),
+            )
+        ));
+            
+        $result = json_decode(file_get_contents($url, false, $context), true);
+        $this->plugin = array_reduce($result, function ($carry, $item) use ($pluginId) {
+            if ($item['id'] == $pluginId) {
+                $carry = $item;
+            }
+            return $carry;
+        }, []);
+
+        return $this->plugin;
     }
 }
