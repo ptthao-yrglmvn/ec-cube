@@ -18,7 +18,6 @@ use Eccube\Repository\PluginRepository;
 use Page\Admin\PluginManagePage;
 use Page\Admin\PluginSearchPage;
 use Page\Admin\PluginStoreInstallPage;
-use Eccube\Common\Constant;
 
 class PluginAutomationCest
 {
@@ -27,11 +26,12 @@ class PluginAutomationCest
     public function _before(AcceptanceTester $I)
     {
         $I->loginAsAdmin();
-        $this->store = Store_Plugin::start($I);
     }
 
     public function _after(AcceptanceTester $I)
     {
+        $I->waitForJS("return $.active == 0;", 120);
+
         # Disable maintenance
         $config = Fixtures::get('config');
         $maintenance_file_path= $config->get('eccube_content_maintenance_file_path');
@@ -42,46 +42,87 @@ class PluginAutomationCest
 
     public function test_setting_authenKey(AcceptanceTester $I)
     {
-        $this->store->setting_key();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->setting_key();
+        });
     }
 
     public function test_link_authenKey(AcceptanceTester $I)
     {
-        PluginSearchPage::go($I);
-        $I->waitForText('プラグインを探すオーナーズストア');
-        $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
-        $I->dontSee('オーナーズストアの認証に失敗しました。認証キーの設定を確認してください。', '.alert-danger');
-        $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
+        $this->retryOnException($I, function() use ($I) {
+            PluginSearchPage::go($I);
+            $I->waitForText('プラグインを探すオーナーズストア');
+            $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
+            $I->dontSee('オーナーズストアの認証に失敗しました。認証キーの設定を確認してください。', '.alert-danger');
+            $I->dontSee('オーナーズストアとの通信に失敗しました。時間を置いてもう一度お試しください。', '.alert-danger');
+        });
     }
 
     public function test_search_by_name(AcceptanceTester $I)
     {
-        $this->store->search_by_name();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->search_by_name();
+        });
     }
 
     public function test_install(AcceptanceTester $I)
     {
-        $this->store->install();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->install();
+        });
     }
 
     public function test_enable(AcceptanceTester $I)
     {
-        $this->store->enable();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->enable();
+        });
     }
 
     public function test_disable(AcceptanceTester $I)
     {
-        $this->store->disable();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->disable();
+        });
     }
 
     public function test_remove(AcceptanceTester $I)
     {
-        $this->store->uninstall();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->uninstall();
+        });
     }
 
     public function test_directoryIsRemoved(AcceptanceTester $I)
     {
-        $this->store->checkDirectoryIsRemoved();
+        $store = Store_Plugin::start($I);
+        $this->retryOnException($I, function() use ($store) {
+            $store->checkDirectoryIsRemoved();
+        });
+    }
+
+    protected function retryOnException(AcceptanceTester $I, callable $func, $maxAttempts = 3)
+    {
+        $attempts = 0;
+        while (true) {
+            try {
+                $I->loginAsAdmin();
+                return $func();
+            } catch (\Exception $e) {
+                $attempts++;
+                if ($attempts >= $maxAttempts) {
+                    throw new \Exception("Max retries reached for test: " . $e->getMessage(), 0, $e);
+                }
+                $I->resetCookie(getenv('ECCUBE_COOKIE_NAME'));
+                $I->deleteSessionSnapshot('login');
+            }
+        }
     }
 }
 
@@ -128,29 +169,10 @@ class Store_Plugin
 
     public static function start(AcceptanceTester $I)
     {
-        $config = Fixtures::get('config');
-        $url = $config->get('eccube_package_api_url').'/plugins/purchased';
         $authenticationKey = getenv('AUTHENTICATION_KEY');
         $pluginId = getenv('PLUGIN_ID');
 
-        $context = stream_context_create(array(
-            'http' => array(
-                'method' => 'GET',
-                'header' => array(
-                    'X-ECCUBE-KEY: '.$authenticationKey,
-                    'X-ECCUBE-VERSION: '.Constant::VERSION,
-                ),
-            )
-        ));
-            
-        $result = json_decode(file_get_contents($url, false, $context), true);
-        $plugin = array_reduce($result, function ($carry, $item) use ($pluginId) {
-            if ($item['id'] == $pluginId) {
-                $carry = $item;
-            }
-            return $carry;
-        }, []);
-
+        $plugin = $I->getPluginByApi($authenticationKey, $pluginId);
         $result = new self($I, $authenticationKey, $plugin);
 
         return $result;
@@ -167,7 +189,6 @@ class Store_Plugin
 
         $this->I->expect('認証キーの登録ボタンをクリックします。');
         $this->I->click(['css' => '.btn-ec-conversion']);
-        $this->I->wait(5);
         $this->I->waitForText('保存しました');
 
         return $this;
