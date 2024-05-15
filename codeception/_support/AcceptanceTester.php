@@ -50,6 +50,9 @@ class AcceptanceTester extends \Codeception\Actor
         }
 
         $I = $this;
+        if ($I->loadSessionSnapshot('login')) {
+            return;
+        }
         $this->goToAdminPage($dir);
 
         $I->submitForm('#form1', [
@@ -58,6 +61,7 @@ class AcceptanceTester extends \Codeception\Actor
         ]);
 
         $I->see('ホーム', '.c-contentsArea .c-pageTitle > .c-pageTitle__titles');
+        $I->saveSessionSnapshot('login');
     }
 
     public function logoutAsAdmin()
