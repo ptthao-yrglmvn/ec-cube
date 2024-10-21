@@ -5,6 +5,15 @@ if [ -n "${APP_ENV}" ]; then
     echo "SetEnv APP_ENV ${APP_ENV}" >> /etc/apache2/conf-enabled/app_env.conf
 fi
 
+bin/console doctrine:query:sql 'select * from dtb_base_info' > /dev/null 2>&1 || (
+    composer run-script installer-scripts
+    composer run-script auto-scripts
+    find ${APACHE_DOCUMENT_ROOT} \( -path ${APACHE_DOCUMENT_ROOT}/vendor -prune \) -or -print0 \
+        | xargs -0 chown www-data:www-data
+    find ${APACHE_DOCUMENT_ROOT} \( -path ${APACHE_DOCUMENT_ROOT}/vendor -prune \) -or \( -type d -print0 \) \
+      | xargs -0 chmod g+s
+)
+
 # first arg is `-f` or `--some-option`
 if [ "${1#-}" != "$1" ]; then
 	set -- apache2-foreground "$@"
